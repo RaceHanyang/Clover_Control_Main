@@ -9,7 +9,12 @@
 #include "HLD.h"
 #include "CanCommunication.h"
 #include "RVC.h"
+#ifdef __SDP_CLOVER__
+#include "Cascadia_Inverter_can.h"
+#endif
+#ifndef __SDP_CLOVER__
 #include "AmkInverter_can.h"
+#endif
 #include "OrionBms2.h"
 
 #include "SteeringWheel_canMessage.h"
@@ -30,6 +35,20 @@ typedef struct
 	boolean appsError;
 	boolean bppsError;
 	float32 lvBatteryVoltage;
+#ifdef __SDP_CLOVER__
+	float32 brakePressure1;
+	float32 brakePressure2;
+	float32 wssFL;
+	float32 wssFR;
+	float32 wssRL;
+	float32 wssRR;
+	float32 sta_raw;
+	float32 sta;
+	float32 torqueFL;
+	float32 torqueFR;
+	float32 torqueRL;
+	float32 torqueRR;
+#endif
 }SteeringWheel_public_data_t;
 
 typedef struct 
