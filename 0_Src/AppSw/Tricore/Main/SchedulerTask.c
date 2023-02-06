@@ -25,6 +25,11 @@
 #include "SharedPinFix.h"
 #include "AdcForceStart.h"
 
+#ifdef __SDP_CLOVER__
+#include "AccumulatorCooling.h"
+#include "SteeringAngle.h"
+#endif
+
 
 /******************************************************************************/
 /*-----------------------------------Macros-----------------------------------*/

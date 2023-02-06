@@ -112,7 +112,7 @@ void Task_core2_1ms(void)
 void Task_core2_10ms_slot1(void)
 {
 
-
+	SDP_AccumulatorCooling_run_10ms();
 	/*
 	FIXME:
 	tempPedal to target torque value
