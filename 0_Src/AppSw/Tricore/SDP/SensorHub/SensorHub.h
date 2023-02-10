@@ -27,7 +27,7 @@ typedef union
         uint16 IN2;
         uint16 IN3;
         uint16 IN4;
-    }
+    };
 }SensorHub_msgADC_t;
 
 typedef union
@@ -51,7 +51,7 @@ typedef union
         } dutyFlag;
         uint16 reserved1;
         uint8 reserved2;
-    }
+    };
 }SensorHub_msgWSS_t;
 
 typedef struct 
