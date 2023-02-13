@@ -8,6 +8,7 @@
 #ifndef SRC_APPSW_TRICORE_SDP_SteeringAngleAdc_H_
 #define SRC_APPSW_TRICORE_SDP_SteeringAngleAdc_H_
 #include "AdcSensor.h"
+#include "SDP.h"
 
 typedef struct
 {
