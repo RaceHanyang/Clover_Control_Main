@@ -70,6 +70,10 @@ IFX_STATIC void OrionBms2_receiveMessage(void)
 		OrionBms2.msg1.packCurrent = ((OrionBms2.msgObj1.msg.data[0] & 0x0000FFFF) >> 0);
 		OrionBms2.msg1.packVoltage = ((OrionBms2.msgObj1.msg.data[0] & 0xFFFF0000) >> 16);
 		OrionBms2.msg1.packSoc = ((OrionBms2.msgObj1.msg.data[1] & 0x000000FF) >> 0);
+
+		RVC_public.bms.data.current = (float32)OrionBms2.msg1.packCurrent / 10;
+		RVC_public.bms.data.voltage = (float32)OrionBms2.msg1.packVoltage / 10;
+		RVC_public.bms.data.soc = (float32)OrionBms2.msg1.packSoc / 2;
 		while(IfxCpu_acquireMutex(&RVC_public.bms.shared.mutex))
 			; // Wait for mutex
 		{
@@ -84,6 +88,9 @@ IFX_STATIC void OrionBms2_receiveMessage(void)
 	{
 		OrionBms2.msg2.packChargeLimit = ((OrionBms2.msgObj2.msg.data[0] & 0x0000FFFF) >> 0);
 		OrionBms2.msg2.packDischargeLimit = ((OrionBms2.msgObj2.msg.data[0] & 0xFFFF0000) >> 16);
+
+		RVC_public.bms.data.chargeLimit = OrionBms2.msg2.packChargeLimit;
+		RVC_public.bms.data.dischargeLimit = OrionBms2.msg2.packDischargeLimit;
 		while(IfxCpu_acquireMutex(&RVC_public.bms.shared.mutex))
 			; // Wait for mutex
 		{
@@ -100,6 +107,11 @@ IFX_STATIC void OrionBms2_receiveMessage(void)
 		OrionBms2.msg3.avgTemp = ((OrionBms2.msgObj3.msg.data[0] & 0x00FF0000) >> 16);
 		OrionBms2.msg3.bmsTemp = ((OrionBms2.msgObj3.msg.data[0] & 0xFF000000) >> 24);
 		OrionBms2.msg3.lowVoltage = ((OrionBms2.msgObj3.msg.data[1] & 0x0000FFFF) >> 0);
+
+		RVC_public.bms.data.highestTemp = (sint8)OrionBms2.msg3.highTemp;
+		RVC_public.bms.data.averageTemp = (sint8)OrionBms2.msg3.avgTemp;
+		RVC_public.bms.data.bmsTemp = (sint8)OrionBms2.msg3.bmsTemp;
+		RVC_public.bms.data.lowestVoltage = (float32)OrionBms2.msg3.lowVoltage/10000;
 		while(IfxCpu_acquireMutex(&RVC_public.bms.shared.mutex))
 			; // Wait for mutex
 		{
