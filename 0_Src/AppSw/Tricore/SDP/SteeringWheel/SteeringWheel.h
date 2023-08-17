@@ -31,6 +31,7 @@ typedef struct
 	boolean appsError;
 	boolean bppsError;
 	float32 lvBatteryVoltage;
+	//float32 packPower;
 }SteeringWheel_public_data_t;
 
 typedef struct 
@@ -48,6 +49,12 @@ IFX_EXTERN SteeringWheel_public_t SteeringWheel_public;
 
 /*********************** Function Prototypes *************************/
 IFX_EXTERN void SteeringWheel_init(void);
+IFX_EXTERN void SteeringWheel_run_1ms(void);
 IFX_EXTERN void SteeringWheel_run_xms_c2(void);
+
+IFX_EXTERN void SteeringWheel_readRSW1(uint8*);
+IFX_EXTERN void SteeringWheel_readRSW2(uint8*);
+IFX_EXTERN void SteeringWheel_readRSW3(uint8*);
+IFX_EXTERN void SteeringWheel_readRSW(uint8* RSW1, uint8* RSW2, uint8* RSW3);
 
 #endif

@@ -12,7 +12,7 @@
 
 /***************************** Includes ******************************/
 #include "SteeringWheel.h"
-
+#include "SDP.h"
 
 /**************************** Macro **********************************/
 
@@ -20,18 +20,29 @@
 /************************* Data Structures ***************************/
 typedef struct 
 {
-	CanCommunication_Message msgObj1;
-	CanCommunication_Message msgObj2;
-	CanCommunication_Message msgObj3;
+	CanCommunication_Message msgObj1; //StWhlMsgId1
+	CanCommunication_Message msgObj2; //StWhlMsgId2
+	CanCommunication_Message msgObj3; //StWhlMsgId3
 	SteeringWheel_canMsg1_t canMsg1;
 	SteeringWheel_canMsg2_t canMsg2;
 	SteeringWheel_canMsg3_t canMsg3;
+
+#ifdef __SDP_CLOVER__
+	CanCommunication_Message msgObj4;
+	SteeringWheel_RSWMsg_t canMsg4;
+#endif
 }SteeringWheel_t;
 
 /*********************** Global Variables ****************************/
+//TX ID~
 const uint32 StWhlMsgId1 = 0x00101F00UL;
 const uint32 StWhlMsgId2 = 0x00101F01UL;
 const uint32 StWhlMsgId3 = 0x00101F02UL;
+//~TX ID
+//RX ID~
+//const uint32 StWhlRSWMsgId = 0x237BB01UL;
+const uint32 StWhlRSWMsgId = 0x00101F10UL;
+//~RX ID
 
 SteeringWheel_t SteeringWheel;
 SteeringWheel_public_t SteeringWheel_public;
@@ -48,6 +59,7 @@ amkActualValues2 INV_FR_AMK_Actual_Values2;
 
 void SteeringWheel_init(void)
 {
+	//TX init~
 	{
 		CanCommunication_Message_Config config;
 		config.messageId		=	StWhlMsgId1;
@@ -72,9 +84,33 @@ void SteeringWheel_init(void)
         config.node				=	&CanCommunication_canNode0;
         CanCommunication_initMessage(&SteeringWheel.msgObj3, &config);
 	}
+	//~TX init
+
+	//RX init~
+#ifdef __SDP_CLOVER__
+	{
+		CanCommunication_Message_Config config;
+		config.messageId = StWhlRSWMsgId;
+		config.frameType = IfxMultican_Frame_receive;
+		config.dataLen = IfxMultican_DataLengthCode_8;
+		config.node = &CanCommunication_canNode0;
+		CanCommunication_initMessage(&SteeringWheel.msgObj4, &config);
+	}
+#endif
+	//~RX init
 }
 
-void SteeringWheel_run_xms_c2(void)
+void SteeringWheel_run_1ms(void)
+{
+#ifdef __SDP_CLOVER__
+	if(CanCommunication_receiveMessage(&SteeringWheel.msgObj4)) {
+		SteeringWheel.canMsg4.U[0] = SteeringWheel.msgObj4.msg.data[0];
+		SteeringWheel.canMsg4.U[1] = SteeringWheel.msgObj4.msg.data[1];
+	}
+#endif
+}
+
+void SteeringWheel_run_xms_c2(void) //10ms
 {
 	/* Shared variable update */
 	while(IfxCpu_acquireMutex(&SteeringWheel_public.shared.mutex));	//Wait for mutex
@@ -99,7 +135,8 @@ void SteeringWheel_run_xms_c2(void)
 
 	SteeringWheel.canMsg2.S.apps = (uint16)(SteeringWheel_public.data.apps*100);
 	SteeringWheel.canMsg2.S.bpps = (uint16)(SteeringWheel_public.data.bpps*100);
-	SteeringWheel.canMsg2.S.lvBatteryVoltage = (uint16)(SteeringWheel_public.data.lvBatteryVoltage*100);
+	//SteeringWheel.canMsg2.S.lvBatteryVoltage = (uint16)(SteeringWheel_public.data.lvBatteryVoltage*100);
+	SteeringWheel.canMsg2.S.packPower = (uint16)(OrionBms2.msg1.packVoltage * OrionBms2.msg1.packCurrent)/1000; //factor of 10
 	SteeringWheel.canMsg2.S.accumulatorVoltage = OrionBms2.msg1.packVoltage;
 /*
 	SteeringWheel.canMsg3.S.inverterFLTemp = INV_FL_AMK_Actual_Values2.S.AMK_TempInverter;
@@ -126,4 +163,22 @@ void SteeringWheel_run_xms_c2(void)
 	CanCommunication_transmitMessage(&SteeringWheel.msgObj1);
 	CanCommunication_transmitMessage(&SteeringWheel.msgObj2);
 	CanCommunication_transmitMessage(&SteeringWheel.msgObj3);
+}
+
+void SteeringWheel_readRSW1(uint8* RSW1) {
+	*RSW1 = SteeringWheel.canMsg4.S.RSW1;
+}
+
+void SteeringWheel_readRSW2(uint8* RSW2) {
+	*RSW2 = SteeringWheel.canMsg4.S.RSW2;
+}
+
+void SteeringWheel_readRSW3(uint8* RSW3) {
+	*RSW3 = SteeringWheel.canMsg4.S.RSW3;
+}
+
+void SteeringWheel_readRSW(uint8* RSW1, uint8* RSW2, uint8* RSW3) {
+	*RSW1 = SteeringWheel.canMsg4.S.RSW1;
+	*RSW2 = SteeringWheel.canMsg4.S.RSW2;
+	*RSW3 = SteeringWheel.canMsg4.S.RSW3;
 }
