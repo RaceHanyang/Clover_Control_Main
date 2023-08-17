@@ -42,10 +42,18 @@ typedef union
             uint8 U;
             struct 
             {
+                //uint8 TIM1_ERROR : 1;
                 uint8 reserved1 : 1;
-                uint8 TIM2_ERROR : 1;
+
+                //uint8 TIM2_ERROR : 1;
+                uint8 reserved2: 1;
+
                 uint8 TIM3_ERROR : 1;
-                uint8 reserved15 : 1;
+                //uint8 reserved3: 1;
+
+                uint8 TIM15_ERROR : 1;
+                //uint8 reserved15 : 1;
+
                 uint8 reserved:4;
             }S;
         } dutyFlag;
@@ -75,15 +83,20 @@ IFX_EXTERN uint16 SDP_SensorHub_getRPM_FL();
 IFX_EXTERN uint16 SDP_SensorHub_getRPM_FR();
 IFX_EXTERN uint16 SDP_SensorHub_getRPM_RL();
 IFX_EXTERN uint16 SDP_SensorHub_getRPM_RR();
-IFX_EXTERN void SDP_SensorHub_getRPM_Front(uint16*);
-IFX_EXTERN void SDP_SensorHub_getRPM_Rear(uint16*);
-IFX_EXTERN void SDP_SensorHub_getRPM(uint16*);
+IFX_EXTERN void SDP_SensorHub_getRPM_Front(uint16* RPM_FL, uint16* RPM_FR);
+IFX_EXTERN void SDP_SensorHub_getRPM_Rear(uint16* RPM_RL, uint16* RPM_RR);
+IFX_EXTERN void SDP_SensorHub_getRPM(uint16* RPM_FL, uint16* RPM_FR, uint16* RPM_RL, uint16* RPM_RR);
+
+IFX_EXTERN boolean SDP_SensorHub_getRPMStatus_FL();
+IFX_EXTERN boolean SDP_SensorHub_getRPMStatus_FR();
+IFX_EXTERN boolean SDP_SensorHub_getRPMStatus_RL();
+IFX_EXTERN boolean SDP_SensorHub_getRPMStatus_RR();
 
 IFX_EXTERN double SDP_SensorHub_getDamper_FL();
 IFX_EXTERN double SDP_SensorHub_getDamper_FR();
 IFX_EXTERN double SDP_SensorHub_getDamper_RL();
 IFX_EXTERN double SDP_SensorHub_getDamper_RR();
-IFX_EXTERN void SDP_SensorHub_getDamper_Front(double*);
-IFX_EXTERN void SDP_SensorHub_getDamper_Rear(double*);
-IFX_EXTERN void SDP_SensorHub_getDamper(double*);
+IFX_EXTERN void SDP_SensorHub_getDamper_Front(double* Damper_FL, double* Damper_FR);
+IFX_EXTERN void SDP_SensorHub_getDamper_Rear(double* Damper_RL, double* Damper_RR);
+IFX_EXTERN void SDP_SensorHub_getDamper(double* Damper_FL, double* Damper_FR, double* Damper_RL, double* Damper_RR);
 #endif /* SENSORHUB_H*/

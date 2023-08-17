@@ -143,24 +143,40 @@ uint16 SDP_SensorHub_getRPM_RR() {
 }
 
 //Must have a parameter of uint16 type pointer with memory assigned at least of 32bits.
-void SDP_SensorHub_getRPM_Front(uint16* frontRPM) {
-	frontRPM[0] = SDP_SensorHub_getRPM_FL();
-	frontRPM[1] = SDP_SensorHub_getRPM_FR();
+void SDP_SensorHub_getRPM_Front(uint16* RPM_FL, uint16* RPM_FR) {
+	*RPM_FL = SDP_SensorHub_getRPM_FL();
+	*RPM_FR = SDP_SensorHub_getRPM_FR();
 }
 
 //Must have a parameter of uint16 type pointer with memory assigned at least of 32bits.
-void SDP_SensorHub_getRPM_Rear(uint16* rearRPM) {
-	rearRPM[0] = SDP_SensorHub_getRPM_RL();
-	rearRPM[1] = SDP_SensorHub_getRPM_RR();
+void SDP_SensorHub_getRPM_Rear(uint16* RPM_RL, uint16* RPM_RR) {
+	*RPM_RL = SDP_SensorHub_getRPM_RL();
+	*RPM_RR = SDP_SensorHub_getRPM_RR();
 }
 
 //Must have a parameter of uint16 type pointer with memory assigned at least of 32bits.
 //In the sequence of FL FR RL RR
-void SDP_SensorHub_getRPM(uint16* RPM) {
-	RPM[0] = SDP_SensorHub_getRPM_FL();
-	RPM[1] = SDP_SensorHub_getRPM_FR();
-	RPM[2] = SDP_SensorHub_getRPM_RL();
-	RPM[3] = SDP_SensorHub_getRPM_RR();
+void SDP_SensorHub_getRPM(uint16* RPM_FL, uint16* RPM_FR, uint16* RPM_RL, uint16* RPM_RR) {
+	*RPM_FL = SDP_SensorHub_getRPM_FL();
+	*RPM_FR = SDP_SensorHub_getRPM_FR();
+	*RPM_RL = SDP_SensorHub_getRPM_RL();
+	*RPM_RR = SDP_SensorHub_getRPM_RR();
+}
+
+boolean SDP_SensorHub_getRPMStatus_FL() {
+	return SensorHub_FRONT.SensorHubWSS.dutyFlag.S.TIM15_ERROR;
+}
+
+boolean SDP_SensorHub_getRPMStatus_FR() {
+	return SensorHub_FRONT.SensorHubWSS.dutyFlag.S.TIM3_ERROR;
+}
+
+boolean SDP_SensorHub_getRPMStatus_RL() {
+	return SensorHub_FRONT.SensorHubWSS.dutyFlag.S.TIM3_ERROR;
+}
+
+boolean SDP_SensorHub_getRPMStatus_RR() {
+	return SensorHub_FRONT.SensorHubWSS.dutyFlag.S.TIM15_ERROR;
 }
 
 //Returns damper contraction ratio
@@ -188,21 +204,21 @@ double SDP_SensorHub_getDamper_RR() {
 }
 
 //Must have a parameter of double type pointer with memory assigned at least of two elements.
-void SDP_SensorHub_getDamper_Front(double* frontDamper) {
-	frontDamper[0] = SDP_SensorHub_getDamper_FL();
-	frontDamper[1] = SDP_SensorHub_getDamper_FR();
+void SDP_SensorHub_getDamper_Front(double* Damper_FL, double* Damper_FR) {
+	*Damper_FL = SDP_SensorHub_getDamper_FL();
+	*Damper_FR = SDP_SensorHub_getDamper_FR();
 }
 
 //Must have a parameter of double type pointer with memory assigned at least of two elements.
-void SDP_SensorHub_getDamper_Rear(double* rearDamper) {
-	rearDamper[0] = SDP_SensorHub_getDamper_RL();
-	rearDamper[1] = SDP_SensorHub_getDamper_RR();
+void SDP_SensorHub_getDamper_Rear(double* Damper_RL, double* Damper_RR) {
+	*Damper_RL = SDP_SensorHub_getDamper_RL();
+	*Damper_RR = SDP_SensorHub_getDamper_RR();
 }
 
 //Must have a parameter of double type pointer with memory assigned at least of four elements.
-void SDP_SensorHub_getDamper(double* Damper) {
-	Damper[0] = SDP_SensorHub_getDamper_FL();
-	Damper[1] = SDP_SensorHub_getDamper_FR();
-	Damper[2] = SDP_SensorHub_getDamper_RL();
-	Damper[3] = SDP_SensorHub_getDamper_RR();
+void SDP_SensorHub_getDamper(double* Damper_FL, double* Damper_FR, double* Damper_RL, double* Damper_RR) {
+	*Damper_FL = SDP_SensorHub_getDamper_FL();
+	*Damper_FR = SDP_SensorHub_getDamper_FR();
+	*Damper_RL = SDP_SensorHub_getDamper_RL();
+	*Damper_RR = SDP_SensorHub_getDamper_RR();
 }
