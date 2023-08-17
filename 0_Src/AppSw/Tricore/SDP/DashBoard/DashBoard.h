@@ -50,6 +50,54 @@ typedef union{
 
 }StartBtnPushed_t;
 
+typedef union{
+	uint32 ReceivedData[2];
+	struct{
+		uint32 RTD_Set:1;
+		uint32 RTD_Reset:1;
+		uint32 Reserved0:30;
+		uint32 Reserved1;
+	};
+}StartStatusUpdate_t;
+
+typedef union
+{
+	uint32 ReceivedData[2];
+	struct
+	{
+		uint8 Inverter_L_Status; // Enable lockdown + 6
+		uint8 Inverter_R_Status;
+		boolean SdcAmsOk : 1;
+		boolean SdcImdOk : 1;
+		boolean SdcBspdOk : 1;
+		boolean SdcFinalOn : 1;
+		boolean RTDOn : 1;
+		boolean InverterTempWarning : 1;
+		boolean AccumulatorTempWarning : 1;
+		boolean InverterFault: 1;
+		uint8 reserved1;
+		uint16 reserved2;
+	}S;
+}DashBoardMsg0_t;
+
+typedef struct
+{
+	boolean bmsOk;
+	boolean imdOk;
+	boolean bspdOk;
+	boolean sdcSenFinal;
+}DashBoard_info_t;
+
+typedef struct
+{
+	DashBoard_info_t data;
+	struct
+	{
+		DashBoard_info_t data;
+		IfxCpu_mutexLock mutex;
+	}shared;
+}DashBoard_public_t;
+
 IFX_EXTERN void SDP_Dashboard_can_init();
 
 // IFX_EXTERN boolean DashBoardSendMessage;
@@ -58,3 +106,5 @@ IFX_EXTERN StartBtnPushed_t StartBtnPushed;
 IFX_EXTERN StartBtnPushed_t StartBtnMirror;
 
 IFX_EXTERN DashBoardLed_t DashBoardLed;
+
+IFX_EXTERN StartStatusUpdate_t StartStatusUpdate;

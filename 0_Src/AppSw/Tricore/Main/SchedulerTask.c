@@ -167,21 +167,22 @@ void Task_init (void)
 	/*SDP initialization*/
 	{
 		SDP_Dashboard_can_init();
-		SDP_PedalBox_init();
-		SDP_SteeringAngle_init();
-		SDP_WheelSpeed_init();
-		SDP_ShockValue_init();
-		SDP_MC_init();
-		CanGateway_init();
-		SDP_Cooling_init();
+		//SDP_PedalBox_init();
+		//SDP_SteeringAngle_init();
+		//SDP_WheelSpeed_init();
+		//SDP_ShockValue_init();
+		//SDP_MC_init();
+		//CanGateway_init();
+		Clover_CanGateway_init();
+		//SDP_Cooling_init();
 	}
 	/* Hmm... */
 	{
-		AccumulatorManager_master_init();
-		AmkInverter_can_init();
-		OrionBms2_init();
-		RVC_init();
-		SteeringWheel_init();
+		//AccumulatorManager_master_init();
+		//AmkInverter_can_init();
+		//OrionBms2_init();
+		//RVC_init();
+		//SteeringWheel_init();
 
 		// MicroSD_Demo_initSD();
 
@@ -251,6 +252,7 @@ void Task_IsrCb_1ms (void)
 	{
 
 		// CanGateway_run();
+		Clover_CanGateway_run_1ms();
 	}
 	{
 		// RVC_run_1ms();
@@ -267,6 +269,7 @@ void Task_10ms (void)			//Slot 0
 	stm_buf = IfxStm_get(&MODULE_STM0);
 	Task_counter_service_10ms();
 	// RVC_run_10ms();
+	Clover_CanGateway_run_10ms();
 	SDP_DashBoardLed_run_10ms();
 	// HLD_UserInterface_run_10ms();
 

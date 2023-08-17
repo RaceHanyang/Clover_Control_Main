@@ -3,18 +3,28 @@
 #define STARTBTNPushedCanMSg 0x011
 
 #define STARTBTNMirrorCanMSg 0x010
+#define StartStatusUpdateCanMSg 0x012
+#define StartStatusUpdateCanMSg_echo 0x013
 // DashBoardLed_t DashBoardLed;
 
 StartBtnPushed_t StartBtnPushed;
 CanCommunication_Message StartBtnPushedMsg;
 CanCommunication_Message StartBtnMirrorMsg;
 StartBtnPushed_t StartBtnMirror;
-
+/*
+StartStatusUpdate_t StartStatusUpdate;
+CanCommunication_Message StartStatusUpdateMsg;
+CanCommunication_Message StartStatusUpdateMsg_echo;
+*/
 DashBoardLed_t DashBoardLed;
 
 uint16 START_BTNCount = 0;
 boolean RTDon=0;
 IFX_EXTERN boolean DashBoardSendMessage;
+
+const uint32 DshBrdMsg0 = 0x00081F00UL;
+DashBoardMsg0_t DashBoard_canMsg0;
+CanCommunication_Message DashBoard_msgObj0;
 
 void SDP_Dashboard_can_init();
 
@@ -52,12 +62,36 @@ void SDP_Dashboard_can_init()
 	}
 
 	{
-		CanCommunication_Message_Config config2;
-		config2.messageId = STARTBTNMirrorCanMSg;
-		config2.frameType = IfxMultican_Frame_receive;
-		config2.dataLen = IfxMultican_DataLengthCode_8;
-		config2.node = &CanCommunication_canNode0;
-		CanCommunication_initMessage(&StartBtnMirrorMsg, &config2);
+		CanCommunication_Message_Config config;
+		config.messageId = STARTBTNMirrorCanMSg;
+		config.frameType = IfxMultican_Frame_receive;
+		config.dataLen = IfxMultican_DataLengthCode_8;
+		config.node = &CanCommunication_canNode0;
+		CanCommunication_initMessage(&StartBtnMirrorMsg, &config);
+	}/*
+	{
+		CanCommunication_Message_Config config;
+		config.messageId = StartStatusUpdateCanMSg;
+		config.frameType = IfxMultican_Frame_receive;
+		config.dataLen = IfxMultican_DataLengthCode_8;
+		config.node = &CanCommunication_canNode0;
+		CanCommunication_initMessage(&StartStatusUpdateMsg, &config);
+	}
+	{
+		CanCommunication_Message_Config config;
+		config.messageId = StartStatusUpdateCanMSg_echo;
+		config.frameType = IfxMultican_Frame_transmit;
+		config.dataLen = IfxMultican_DataLengthCode_8;
+		config.node = &CanCommunication_canNode0;
+		CanCommunication_initMessage(&StartStatusUpdateMsg_echo, &config);
+	}*/
+	{
+		CanCommunication_Message_Config config;
+		config.messageId = DshBrdMsg0;
+		config.frameType = IfxMultican_Frame_receive;
+		config.dataLen = IfxMultican_DataLengthCode_8;
+		config.node = &CanCommunication_canNode0;
+		CanCommunication_initMessage(&DashBoard_msgObj0, &config);
 	}
 }
 
@@ -83,6 +117,74 @@ void SDP_DashBoardCanSend(){
 }
 
 void SDP_DashBoardLed_run_10ms(){
+
+	if(CanCommunication_receiveMessage(&DashBoard_msgObj0)) {
+		DashBoard_canMsg0.ReceivedData[0] = DashBoard_msgObj0.msg.data[0];
+		DashBoard_canMsg0.ReceivedData[1] = DashBoard_msgObj0.msg.data[1];
+
+		if(DashBoard_canMsg0.S.SdcAmsOk)
+				DashBoardLed.AMS.val = FALSE; //Error LED
+		else
+			DashBoardLed.AMS.val = TRUE;
+
+		if(DashBoard_canMsg0.S.SdcBspdOk) //Error LED
+			DashBoardLed.BSPD.val = FALSE;
+		else
+			DashBoardLed.BSPD.val = TRUE;
+
+		if(DashBoard_canMsg0.S.SdcImdOk) //ImdError LED
+			DashBoardLed.IMD.val = FALSE;
+		else
+			DashBoardLed.IMD.val = TRUE;
+
+		if(DashBoard_canMsg0.S.SdcFinalOn) //
+			DashBoardLed.SDC.val = TRUE;
+		else
+			DashBoardLed.SDC.val = FALSE;
+
+		if(DashBoard_canMsg0.S.RTDOn)
+			DashBoardLed.RTD.val = TRUE;
+		else
+			DashBoardLed.RTD.val = FALSE;
+
+		if(DashBoard_canMsg0.S.InverterTempWarning)
+			DashBoardLed.TEMP1.val = TRUE;
+		else
+			DashBoardLed.TEMP1.val = FALSE;
+
+		if(DashBoard_canMsg0.S.AccumulatorTempWarning)
+			DashBoardLed.TEMP2.val = TRUE;
+		else
+			DashBoardLed.TEMP2.val = FALSE;
+
+		if(DashBoard_canMsg0.S.InverterFault)
+			DashBoardLed.ECU.val = TRUE;
+		else
+			DashBoardLed.ECU.val = FALSE;
+
+		/*if((!DashBoard_canMsg0.S.RTDOn) && (!DashBoardSendMessage)) {
+			RTDon = FALSE;
+		}*/
+		RTDon = DashBoard_canMsg0.S.RTDOn;
+	}
+/*
+	//RTD Status Update from VCU~
+	if(CanCommunication_receiveMessage(&StartStatusUpdateMsg)) {
+		StartStatusUpdate.ReceivedData[0] = StartStatusUpdateMsg.msg.data[0];
+		StartStatusUpdate.ReceivedData[1] = StartStatusUpdateMsg.msg.data[1];
+
+		CanCommunication_setMessageData(StartStatusUpdate.ReceivedData[0], StartStatusUpdate.ReceivedData[1], &StartStatusUpdateMsg_echo); //send an echo
+
+		if(StartStatusUpdate.RTD_Set) {
+			RTDon = TRUE;
+		}
+		else if(StartStatusUpdate.RTD_Reset) {
+			RTDon = FALSE;
+		}
+	}
+	//~update from VCU
+*/
+
 
     if (IfxPort_getPinState(&MODULE_P00,1)==0){
     // if (TRUE){
@@ -118,6 +220,7 @@ void SDP_DashBoardLed_run_10ms(){
         if (RTDon==FALSE && START_BTNCount>300){
             StartBtnPushed.B.StartBtnPushed = TRUE;
             StartBtnPushed.B.OFFvehicle     = FALSE;
+            /*
             while(TRUE){
                 DashBoardSendMessage = TRUE;
                 SDP_DashBoardMirrorCan();
@@ -125,9 +228,11 @@ void SDP_DashBoardLed_run_10ms(){
                     DashBoardSendMessage =FALSE;
                     break;
                 }
-            }
+            }*/
+            CanCommunication_setMessageData(StartBtnPushed.TxData[0],StartBtnPushed.TxData[1], &StartBtnPushedMsg);
+            CanCommunication_transmitMessage(&StartBtnPushedMsg);
             START_BTNCount = 0;
-            RTDon = TRUE;
+            //RTDon = TRUE;
             IfxPort_setPinLow(DashBoardLed.TEMP1.module,DashBoardLed.TEMP1.port);
             IfxPort_setPinLow(DashBoardLed.TEMP2.module,DashBoardLed.TEMP2.port);
             IfxPort_setPinLow(DashBoardLed.RTD.module,DashBoardLed.RTD.port);
@@ -140,7 +245,7 @@ void SDP_DashBoardLed_run_10ms(){
             CanCommunication_setMessageData(StartBtnPushed.TxData[0],StartBtnPushed.TxData[1], &StartBtnPushedMsg);
             CanCommunication_transmitMessage(&StartBtnPushedMsg);
             START_BTNCount=0;
-            RTDon = FALSE;
+            //RTDon = FALSE;
             IfxPort_setPinLow(DashBoardLed.TEMP1.module,DashBoardLed.TEMP1.port);
             IfxPort_setPinLow(DashBoardLed.TEMP2.module,DashBoardLed.TEMP2.port);
             IfxPort_setPinLow(DashBoardLed.RTD.module,DashBoardLed.RTD.port);
