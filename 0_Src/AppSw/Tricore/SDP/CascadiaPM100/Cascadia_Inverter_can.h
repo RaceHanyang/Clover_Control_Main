@@ -402,5 +402,9 @@ IFX_EXTERN void CascadiaInverter_disable();
 IFX_EXTERN void CascadiaInverter_initParameterWrite();
 IFX_EXTERN void CascadiaInverter_writeTorque(uint16 torque_L, uint16 torque_R);
 IFX_EXTERN void CascadiaInverter_clearFault(PM100_Status_t* Status, PM100_RWParameter_t* Parameter);
+
+//IFX_EXTERN int16 CascadiaInverter_getRPM_RL();
+//IFX_EXTERN int16 CascadiaInverter_getRPM_RR();
+IFX_EXTERN void CascadiaInverter_getRPM(sint16* RPM_RL, sint16* RPM_RR);
 //IFX_EXTERN void CascadiaInverter_disable();
 #endif

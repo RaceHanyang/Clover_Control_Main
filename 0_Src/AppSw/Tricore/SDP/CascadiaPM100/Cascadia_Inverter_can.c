@@ -423,8 +423,26 @@ void CascadiaInverter_clearFault(PM100_Status_t* Status, PM100_RWParameter_t* Pa
 //full torque: 100Nm = 1000 in command
 void CascadiaInverter_writeTorque(uint16 torque_L, uint16 torque_R){
 	CascadiaInverter_enable();
-	Inverter_L_Control.Command.S.PM100_TorqueCommand = torque_L * 5;
-	Inverter_R_Control.Command.S.PM100_TorqueCommand = torque_R * 5;
+	Inverter_L_Control.Command.S.PM100_TorqueCommand = torque_L * 9;
+	Inverter_R_Control.Command.S.PM100_TorqueCommand = torque_R * 9;
 }
 
+sint16 CascadiaInverter_getRPM_RL() {
+	return Inverter_L_Status.Position.S.PM100_MotorSpeed;
+}
 
+sint16 CascadiaInverter_getRPM_RR() {
+	return Inverter_R_Status.Position.S.PM100_MotorSpeed;
+}
+
+void CascadiaInverter_getRPM(sint16* RPM_RL, sint16* RPM_RR) {
+	*RPM_RL = CascadiaInverter_getRPM_RL();
+	*RPM_RR = CascadiaInverter_getRPM_RR();
+}
+
+sint8 CascadiaInverter_getErrorStatus() {
+	sint8 cnt = 0;
+	if(Inverter_L_Status.FaultCodes.ReceivedData[0] || Inverter_L_Status.FaultCodes.ReceivedData[1]) cnt++;
+	if(Inverter_R_Status.FaultCodes.ReceivedData[0] || Inverter_R_Status.FaultCodes.ReceivedData[1]) cnt++;
+	return cnt;
+}
