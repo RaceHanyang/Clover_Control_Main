@@ -103,4 +103,5 @@ IFX_EXTERN void SDP_Cooling_setWaterPump1Duty(uint8);
 IFX_EXTERN void SDP_Cooling_setRadiatorFanDuty(uint8, uint8);
 IFX_EXTERN void SDP_Cooling_setRadiatorFan0Duty(uint8);
 IFX_EXTERN void SDP_Cooling_setRadiatorFan1Duty(uint8);
+IFX_EXTERN void SDP_Cooling_setExternalFanDuty(uint8);
 #endif /* COOLING_H */

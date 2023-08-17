@@ -189,3 +189,10 @@ void SDP_Cooling_setRadiatorFan1Duty(uint8 duty1) {
 
 	CanCommunication_setMessageData(Cooling_order.TxData[0],Cooling_order.TxData[1], &CoolingOrder);
 }
+
+void SDP_Cooling_setExternalFanDuty(uint8 duty) {
+	Cooling_order.B.ExternalFan_DutyOrder = duty;
+
+	CanCommunication_setMessageData(Cooling_order.TxData[0],Cooling_order.TxData[1], &CoolingOrder);
+
+}
