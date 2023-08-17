@@ -14,6 +14,8 @@
 #include "GtmTim.h"
 #include <math.h>
 
+#ifndef __SDP_CLOVER__
+
 /******************************************************************************/
 /*-----------------------------------Macros-----------------------------------*/
 /******************************************************************************/
@@ -124,4 +126,4 @@ IFX_STATIC void SDP_WheelSpeed_getSensorValue(SDP_WheelSpeed_sensor_t* sensor, H
 			sensor->config.speedToVelocity *(sensor->sensorAngularSpeed =
 					sensor->config.freqToSpeed *(sensor->sensorFrequencyRaw = freq));
 }
-
+#endif
