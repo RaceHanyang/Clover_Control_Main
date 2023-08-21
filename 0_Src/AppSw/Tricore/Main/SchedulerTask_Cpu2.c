@@ -89,7 +89,8 @@ void Task_core2_1ms(void)
 
 	OrionBms2_run_1ms_c2();
 	SDP_SensorHub_run_10ms();
-
+	SDP_Accumulator_run_10ms();
+	SteeringWheel_run_1ms();
 	//SDP_SensorHub_run_1ms();
 #endif
 	task2_10ms_counter+=1;
@@ -102,7 +103,7 @@ void Task_core2_1ms(void)
 	//CascadiaInverter_writeTorque(10, 10);
 #endif
 	// else if (task2_10ms_counter ==15)
-	SDP_DashBoardCan_run_10ms();
+	SDP_DashBoardCan_run_1ms();
 #ifndef __SDP_CLOVER__
 	if (RTD_flag)AmkInverterStart();
 #endif
@@ -147,7 +148,7 @@ void Task_core2_10ms_slot1(void)
 }
 
 void Task_core2_10ms_slot2(void){
-
+	SDP_DashBoardCan_run_10ms();
 }
 
 void Task_core2_backgroundService(void)

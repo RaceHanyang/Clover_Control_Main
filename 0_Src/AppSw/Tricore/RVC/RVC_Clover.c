@@ -32,16 +32,16 @@ TODO:
 #include "Gpio_Debounce.h"
 #include "AdcSensor.h"
 #include "AdcForceStart.h"
-
 #include "RVC_Clover.h"
 #include "RVC_privateDataStructure.h"
 #include "RVC_r2dSound.h"
-#include "TorqueVectoring/TorqueVectoring.h"
+#include "TorqueVectoring/TorqueVectoring_Clover.h"
 
 #include "SteeringWheel.h"
 
 #include "DashBoardCan.h"
 
+#include "Accumulator.h"
 #include "Build_Global_Parameter.h"
 
 /**************************** Macro **********************************/
@@ -74,7 +74,7 @@ TODO:
 #define PEDAL_BRAKE_ON_THRESHOLD 10
 #define REGEN_MUL	1	//2
 
-#define POWER_LIM				40000	//40kW
+#define POWER_LIM				80000	//40kW -> 80kW Clover
 #define CURRENT_LIM_SET_VAL		10		//10A
 
 #define TV1PGAIN 0.001
@@ -91,12 +91,13 @@ TODO:
 
 #define BRAKE_ON_BP
 #define BRAKE_ON_TH_BP1	13.97f
-#define BRAKE_ON_TH_BP2 100.0f
+#define BRAKE_ON_TH_BP2 30.0f
 
-#define BMS_PDL_ERROR	TRUE
+//#define BMS_PDL_ERROR	TRUE
+#define BMS_PDL_ERROR	(FALSE)
 
 
-
+#define __IGNORE_BRAKE_OVERRIDE__ (FALSE) //MUST BE SET FALSE ON A REAL RACE! Set this flag true and release the BSPD hardbrake threshold for testing occasions only.
 
 
 
@@ -124,7 +125,19 @@ RVC_t RVC =
 	.power.limit = POWER_LIM,
 	.currentLimit.setValue = CURRENT_LIM_SET_VAL,
 
+	// Terry:RTDSound 3second wait
 	.RTDS_Tick = RTDS_TIME,
+	//~Terry
+
+	//add MS
+	//difflimit --> 0.16 According to skid pad
+	.lsd.speedLow = 2.5f,
+	.lsd.diffLimit = 0.2f,
+	.lsd.kGain = 0.5f/0.2f,
+	.lsd.lGain = 5.0f,
+	.lsd.mGain = 1.0f,		//faster wheel derating
+	.lsd.faster = RVC_Lsd_Faster_none,
+	//~MS
 };
 
 RVC_public_t RVC_public;
@@ -173,6 +186,7 @@ void RVC_init(void)
 	SDP_Cooling_AllOn();
 	SDP_Cooling_setWaterPumpDuty(50, 50);
 	SDP_Cooling_setRadiatorFanDuty(50, 50);
+	SDP_Cooling_setExternalFanDuty(50);
 }
 
 void RVC_run_1ms(void)
@@ -196,7 +210,8 @@ void RVC_run_1ms(void)
 		RVC.brakeOn.bp2 = FALSE;
 
 	//RVC.brakeOn.tot = RVC.brakeOn.bp1 | RVC.brakeOn.bp2 | RVC.brakePressureOn.value;
-	RVC.brakeOn.tot = RVC.brakeOn.bp1 | RVC.brakeOn.bp2;
+	//RVC.brakeOn.tot = RVC.brakeOn.bp1 | RVC.brakeOn.bp2;
+	RVC.brakeOn.tot = RVC.brakeOn.bp2;
 #else
 	RVC.brakeOn.bp1 = FALSE;
 	RVC.brakeOn.bp2 = FALSE;
@@ -220,6 +235,14 @@ void RVC_run_1ms(void)
 	RVC_updateSharedVariable();
 }
 
+void RVC_updateSDCinfo(void)
+{
+	RVC_public.sdc.data.SdcAmsOk = RVC.bmsOk.value;
+	RVC_public.sdc.data.SdcImdOk = RVC.imdOk.value;
+	RVC_public.sdc.data.SdcBspdOk = RVC.bspdOk.value;
+	RVC_public.sdc.data.SdcFinalOn = RVC.sdcSenFinal.value;
+}
+
 void RVC_run_10ms(void)
 {
 	RVC_pollGpi(&RVC.airPositive);
@@ -227,6 +250,16 @@ void RVC_run_10ms(void)
 	RVC_pollGpi(&RVC.brakePressureOn);
 	RVC_pollGpi(&RVC.brakeSwitch);
 	RVC_pollGpi(&RVC.TSALOn);
+	RVC_pollGpi(&RVC.sdcSenBspd);
+	RVC_pollGpi(&RVC.sdcSenImd);
+	RVC_pollGpi(&RVC.sdcSenAms);
+	RVC_pollGpi(&RVC.sdcSenFinal);
+	RVC_pollGpi(&RVC.bmsOk);
+	RVC_pollGpi(&RVC.imdOk);
+	RVC_pollGpi(&RVC.bspdOk);
+	RVC_pollGpi(&RVC.bmsMpo);
+	RVC_pollGpi(&RVC.chargeEn);
+	RVC_updateSDCinfo();
 	RVC_r2d();
 	AdcSensor_getData(&RVC.LvBattery_Voltage);
 	AdcSensor_getData(&RVC.BrakePressure1);
@@ -243,6 +276,9 @@ IFX_STATIC void RVC_setR2d(void)
         CascadiaInverter_initParameterWrite(); //Attempt to clear Fault
 
         RVC.RTDS_Tick = 0;
+        SDP_WheelSpeed_setSourceWSS();
+
+        RVC_public.readyToDrive.data = RVC_public_ReadyToDrive_status_run;
 	}
 }
 
@@ -255,15 +291,21 @@ IFX_STATIC void RVC_resetR2d(void)
         CascadiaInverter_disable();
 
         RVC.RTDS_Tick = 0;
+
+        RVC_public.readyToDrive.data = RVC_public_ReadyToDrive_status_initialized;
 	}
 }
 
 IFX_STATIC void RVC_toggleR2d(void)
 {
-	if(RVC.readyToDrive == RVC_ReadyToDrive_status_initialized)
+	if(RVC.readyToDrive == RVC_ReadyToDrive_status_initialized) {
 		RVC.readyToDrive = RVC_ReadyToDrive_status_run;
-	else if(RVC.readyToDrive == RVC_ReadyToDrive_status_run)
+        RVC_public.readyToDrive.data = RVC_public_ReadyToDrive_status_run;
+	}
+	else if(RVC.readyToDrive == RVC_ReadyToDrive_status_run) {
 		RVC.readyToDrive = RVC_ReadyToDrive_status_initialized;
+        RVC_public.readyToDrive.data = RVC_public_ReadyToDrive_status_initialized;
+	}
 }
 
 IFX_STATIC void RVC_initAdcSensor(void)
@@ -377,6 +419,52 @@ IFX_STATIC void RVC_initGpio(void)
 	gpioInputConfig.inputMode = IfxPort_InputMode_noPullDevice;
 	gpioInputConfig.port = &TSAL_RED_ON_5V;
 	Gpio_Debounce_initInput(&RVC.TSALOn.debounce, &gpioInputConfig);
+
+	gpioInputConfig.bufferLen = Gpio_Debounce_BufferLength_10;
+	gpioInputConfig.inputMode = IfxPort_InputMode_noPullDevice;
+	gpioInputConfig.port = &SDC_SEN_BSPD_5V;
+	Gpio_Debounce_initInput(&RVC.sdcSenBspd.debounce, &gpioInputConfig);
+
+	gpioInputConfig.bufferLen = Gpio_Debounce_BufferLength_10;
+	gpioInputConfig.inputMode = IfxPort_InputMode_noPullDevice;
+	gpioInputConfig.port = &SDC_SEN_IMD_5V;
+	Gpio_Debounce_initInput(&RVC.sdcSenImd.debounce, &gpioInputConfig);
+
+	gpioInputConfig.bufferLen = Gpio_Debounce_BufferLength_10;
+	gpioInputConfig.inputMode = IfxPort_InputMode_noPullDevice;
+	gpioInputConfig.port = &SDC_SEN_AMS_5V;
+	Gpio_Debounce_initInput(&RVC.sdcSenAms.debounce, &gpioInputConfig);
+
+	gpioInputConfig.bufferLen = Gpio_Debounce_BufferLength_10;
+	gpioInputConfig.inputMode = IfxPort_InputMode_noPullDevice;
+	gpioInputConfig.port = &SDC_SEN_FINAL_5V;
+	Gpio_Debounce_initInput(&RVC.sdcSenFinal.debounce, &gpioInputConfig);
+
+	gpioInputConfig.bufferLen = Gpio_Debounce_BufferLength_10;
+	gpioInputConfig.inputMode = IfxPort_InputMode_noPullDevice;
+	gpioInputConfig.port = &BMS_OK;
+	Gpio_Debounce_initInput(&RVC.bmsOk.debounce, &gpioInputConfig);
+
+	gpioInputConfig.bufferLen = Gpio_Debounce_BufferLength_10;
+	gpioInputConfig.inputMode = IfxPort_InputMode_noPullDevice;
+	gpioInputConfig.port = &IMD_OK;
+	Gpio_Debounce_initInput(&RVC.imdOk.debounce, &gpioInputConfig);
+
+	gpioInputConfig.bufferLen = Gpio_Debounce_BufferLength_10;
+	gpioInputConfig.inputMode = IfxPort_InputMode_noPullDevice;
+	gpioInputConfig.port = &BSPD_OK;
+	Gpio_Debounce_initInput(&RVC.bspdOk.debounce, &gpioInputConfig);
+
+	gpioInputConfig.bufferLen = Gpio_Debounce_BufferLength_10;
+	gpioInputConfig.inputMode = IfxPort_InputMode_noPullDevice;
+	gpioInputConfig.port = &BMS_MPO_5V;
+	Gpio_Debounce_initInput(&RVC.bmsMpo.debounce, &gpioInputConfig);
+
+	gpioInputConfig.bufferLen = Gpio_Debounce_BufferLength_10;
+	gpioInputConfig.inputMode = IfxPort_InputMode_noPullDevice;
+	gpioInputConfig.port = &CHARGE_EN;
+	Gpio_Debounce_initInput(&RVC.chargeEn.debounce, &gpioInputConfig);
+
 }
 
 /* TODO:
@@ -455,14 +543,22 @@ IFX_STATIC void RVC_r2d(void) //Gpio(RH) -> CAN(Clover)
 
 	/* Start button routine */
 	buttonOn = SDP_DashBoardCan_getDashBoard_RTD_Status();
-
 	/* R2D routine */
 #ifdef R2D_TEST
 	/***** Test: start button set/reset R2D directly *****/
 	if((RVC.readyToDrive == RVC_ReadyToDrive_status_initialized) && (buttonOn == TRUE)/* && (RVC.brakeOn.tot == TRUE)*/)
 	{
-		RVC_setR2d();
+#ifndef __IGNORE_BRAKE_TO_RTD__
+		if(RVC.brakeOn.tot == TRUE) {
+			RVC_setR2d();
+		}
+		else {
+			SDP_DashBoardCan_reset_pastRTD();
+		}
 	}
+#else
+		RVC_setR2d();
+#endif
 	else if((RVC.readyToDrive == RVC_ReadyToDrive_status_run) && (buttonOn == FALSE))
 	{
 		RVC_resetR2d();
@@ -470,7 +566,7 @@ IFX_STATIC void RVC_r2d(void) //Gpio(RH) -> CAN(Clover)
 #else
 	/* R2D On condition */
 	if((RVC.readyToDrive == RVC_ReadyToDrive_status_initialized) && (RVC.R2d.isAppsChecked == TRUE) &&
-	    (RVC.R2d.isBppsChecked2 == TRUE) && (isAppsLo == TRUE) && (isBppsHi == TRUE))
+		(RVC.R2d.isBppsChecked2 == TRUE) && (isAppsLo == TRUE) && (isBppsHi == TRUE))
 	{
 		if((buttonOn == TRUE))
 		{
@@ -486,6 +582,40 @@ IFX_STATIC void RVC_r2d(void) //Gpio(RH) -> CAN(Clover)
 	}
 
 #endif // R2D_TEST
+
+
+//	switch(SDP_DashBoardCan_getDashBoard_RTD_UpdateRequest()){
+//		case DashBoard_RTD_Status_UpdateRequest_none: { //Other than this, the RTD value from the DashBoard shall be ignored.
+//
+//
+//		#ifndef __TEST_DISABLE_RESET_RTD_STATUS_ON_HV_OFF__
+//			if((RVC.readyToDrive == RVC_ReadyToDrive_status_run) && (RVC.TSALOn.value == 0)) { //2023KSAE spec: RTD is on but HV is off -> Turn off RTD
+//				SDP_DashBoardCan_resetRTD_request();
+//				RVC_resetR2d();
+//			}
+//			break;
+//		#endif
+//		}
+//
+//		case DashBoard_RTD_Status_UpdateRequest_set: {
+//			SDP_DashBoardCan_setRTD();
+//			break;
+//		}
+//
+//		case DashBoard_RTD_Status_UpdateRequest_reset: {
+//			SDP_DashBoardCan_resetRTD();
+//			break;
+//		}
+//	}
+
+	#ifndef __TEST_DISABLE_RESET_RTD_STATUS_ON_HV_OFF__
+		if((RVC.readyToDrive == RVC_ReadyToDrive_status_run) && (RVC.TSALOn.value == 0)) { //2023KSAE spec: RTD is on but HV is off -> Turn off RTD
+			//SDP_DashBoardCan_resetRTD_request();
+			RVC_resetR2d();
+			SDP_DashBoardCan_reset_pastRTD();
+		}
+	#endif
+
 }
 
 IFX_STATIC void RVC_pollGpi(RVC_Gpi_t *gpi)
@@ -509,8 +639,21 @@ IFX_INLINE void RVC_updateReadyToDriveSignal(void)
 	*/
 	if(RVC.RTDS_Tick < RTDS_TIME){
 		RVC.RTDS_Tick++;
-		IfxPort_setPinLow(R2DOUT.port, R2DOUT.pinIndex);
-		IfxPort_setPinLow(FWD_OUT.port, FWD_OUT.pinIndex);
+
+		if(RVC.readyToDrive == RVC_ReadyToDrive_status_run) { //Constant sound
+			IfxPort_setPinLow(R2DOUT.port, R2DOUT.pinIndex); //Speaker
+		}
+		else if(RVC.readyToDrive == RVC_ReadyToDrive_status_initialized) { //Switching beep
+			if((RVC.RTDS_Tick / 50)%2) { //Switching duty: 500ms
+				IfxPort_setPinLow(R2DOUT.port, R2DOUT.pinIndex);
+			}
+			else {
+				IfxPort_setPinHigh(R2DOUT.port, R2DOUT.pinIndex);
+			}
+		}
+
+		//IfxPort_setPinLow(R2DOUT.port, R2DOUT.pinIndex);
+		IfxPort_setPinLow(FWD_OUT.port, FWD_OUT.pinIndex); //Not connected to anything
 	}
 	else{
 		IfxPort_setPinHigh(R2DOUT.port, R2DOUT.pinIndex);
@@ -520,11 +663,12 @@ IFX_INLINE void RVC_updateReadyToDriveSignal(void)
 
 IFX_INLINE void RVC_slipComputation(void)
 {
-#ifndef __SDP_CLOVER__
+//#ifndef __SDP_CLOVER__
 	RVC.slip.axle = SDP_WheelSpeed.velocity.rearAxle/SDP_WheelSpeed.velocity.frontAxle;
 	RVC.slip.left = SDP_WheelSpeed.wssRL.wheelLinearVelocity/SDP_WheelSpeed.wssFL.wheelLinearVelocity;
 	RVC.slip.right = SDP_WheelSpeed.wssRR.wheelLinearVelocity/SDP_WheelSpeed.wssFR.wheelLinearVelocity;
-#endif
+	RVC.diff.rear = (SDP_WheelSpeed.wssRL.wheelLinearVelocity-SDP_WheelSpeed.wssRR.wheelLinearVelocity); //add MS Left - Right
+//#endif
 	// RVC.diff.rear
 	if(isnan(RVC.slip.axle)||isnan(RVC.slip.left)||isnan(RVC.slip.right))
 	{
@@ -533,6 +677,15 @@ IFX_INLINE void RVC_slipComputation(void)
 	else
 	{
 		RVC.slip.error = FALSE;
+	}
+	//add MS
+	if(isnan(RVC.diff.rear))
+	{
+		RVC.diff.error = TRUE;
+	}
+	else
+	{
+		RVC.diff.error = FALSE;
 	}
 }
 
@@ -547,7 +700,7 @@ IFX_INLINE void RVC_getTorqueRequired(void)
 		RVC.torque.controlled = (RVC.torque.desired = 0);		//APPS Fail
 	}
 #ifdef BRAKE_ON_BP	//No Regen!	//TODO
-	if(RVC.brakeOn.tot == TRUE)
+	if(RVC.brakeOn.tot == TRUE && __IGNORE_BRAKE_OVERRIDE__ == FALSE)
 	{
 		RVC.torque.controlled = (RVC.torque.desired = 0);	//Zero torque signal when brake on.
 	}
@@ -606,16 +759,16 @@ IFX_INLINE void RVC_torqueLimit(void)
 	}
 	else
 	{
-		dischargeLimit = RVC_public.bms.data.dischargeLimit;
+		dischargeLimit = RVC_public.bms.data.dischargeLimit; //bms reported discharge limit.
 	}
 
-	float32 currentLimitByPower = RVC.power.currentLimit;
+	float32 currentLimitByPower = RVC.power.currentLimit; //currentLimit = 80kw / live voltage
 
 	RVC.currentLimit.value = (dischargeLimit > currentLimitByPower) ? currentLimitByPower : dischargeLimit;
 
-	RVC.currentLimit.margin = RVC.currentLimit.value - RVC_public.bms.data.current;
+	RVC.currentLimit.margin = RVC.currentLimit.value - RVC_public.bms.data.current; //note: bms.data: 0 fill
 
-	if(RVC.currentLimit.margin < RVC.currentLimit.setValue)
+	if(RVC.currentLimit.margin < RVC.currentLimit.setValue) //setValue = 10A, Constant.
 	{
 		RVC.torque.controlled = RVC.torque.controlled * RVC.currentLimit.margin / RVC.currentLimit.setValue;
 		RVC.currentLimit.isLimited = TRUE;
@@ -628,13 +781,13 @@ IFX_INLINE void RVC_torqueLimit(void)
 
 IFX_INLINE void RVC_torqueSatuation(void)
 {
-	if(RVC.torque.controlled > 100)
+	if(RVC.torque.controlled > 90)
 	{
-		RVC.torque.controlled = 100;
+		RVC.torque.controlled = 90;
 	}
-	else if(RVC.torque.controlled < -100)
+	else if(RVC.torque.controlled < -90)
 	{
-		RVC.torque.controlled = -100;
+		RVC.torque.controlled = -90;
 	}
 	else if(RVC.torque.desired < RVC.torque.controlled)
 	{
@@ -688,9 +841,9 @@ IFX_INLINE void RVC_writeCascadiaCAN(void)
 
 IFX_INLINE void VariableUpdateRoutine(void)
 {
-#ifndef __SDP_CLOVER__
-	SteeringWheel_public.shared.data.vehicleSpeed = SDP_WheelSpeed.velocity.chassis;
-#endif
+
+	SteeringWheel_public.shared.data.vehicleSpeed = SDP_WheelSpeed.velocity.chassis * 3.6; // m/s to kph
+
 	SteeringWheel_public.shared.data.apps = SDP_PedalBox.apps.pps;
 	SteeringWheel_public.shared.data.bpps = SDP_PedalBox.bpps.pps;
 	if(RVC.readyToDrive == RVC_ReadyToDrive_status_run)

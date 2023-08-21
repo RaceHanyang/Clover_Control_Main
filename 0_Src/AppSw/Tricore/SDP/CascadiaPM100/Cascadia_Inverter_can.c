@@ -314,6 +314,7 @@ void CascadiaInverter_enable()
 #else
 if(Inverter_L_Status.InternalStates.InverterEnableLockout == 0 && Inverter_R_Status.InternalStates.InverterEnableLockout == 0) //If either of two interters cannot be enabled.
 {
+
 	Inverter_L_Control.Command.S.PM100_InverterEnable = 1;
 	Inverter_R_Control.Command.S.PM100_InverterEnable = 1;
 

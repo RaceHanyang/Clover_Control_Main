@@ -180,6 +180,7 @@ void Task_init (void)
 #ifdef __SDP_CLOVER__
 		//SensorHub init must come here
 		SDP_SensorHub_init();
+		SDP_Accumulator_init();
 #endif
 		SDP_Cooling_init();
 		SDP_SteeringAngleAdc_init();
@@ -254,7 +255,7 @@ void Task_IsrCb_1ms (void)
 	}
 	{
 
-		// SDP_WheelSpeed_run_1ms();
+	SDP_WheelSpeed_run_1ms();
 		
 		//SDP_ShockValue_run_1ms();
 

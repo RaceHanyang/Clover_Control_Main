@@ -10,6 +10,7 @@
 /* Includes */
 #include "RVC.h"
 #include "RVC_privateDataStructure.h"
+#include "WheelSpeed_Clover.h"
 
 /* Functionc Prototypes */
 IFX_EXTERN void RVC_TorqueVectoring_run_modeOpen(void);

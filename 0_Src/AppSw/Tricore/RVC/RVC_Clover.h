@@ -14,6 +14,14 @@
 #include "SDP.h"
 
 /* Data Structures */
+typedef enum
+{
+	RVC_public_ReadyToDrive_status_notInitialized = 0,
+	RVC_public_ReadyToDrive_status_initialized = 1,
+	RVC_public_ReadyToDrive_status_run = 2,
+} RVC_public_ReadyToDrive_status_t;
+
+
 typedef struct
 {
 	float32 current;
@@ -41,6 +49,27 @@ typedef struct
 
 typedef struct
 {
+	boolean SdcAmsOk : 1;
+	boolean SdcImdOk : 1;
+	boolean SdcBspdOk : 1;
+	boolean SdcFinalOn : 1;
+	boolean reserved0 : 4;
+} RVC_public_sdc_t;
+
+typedef struct
+{
+	struct
+	{
+		RVC_public_ReadyToDrive_status_t data;
+
+		struct
+		{
+			RVC_public_ReadyToDrive_status_t data;
+			IfxCpu_mutexLock mutex;
+			boolean isUpdated;
+		} shared;
+	} readyToDrive;
+
 	struct
 	{
 		RVC_public_bms_t data;
@@ -64,6 +93,17 @@ typedef struct
 			boolean isUpdated;
 		} shared;
 	} inverter1, inverter2;
+
+	struct
+	{
+		RVC_public_sdc_t data;
+
+		struct {
+			RVC_public_sdc_t data;
+			IfxCpu_mutexLock mutex;
+			boolean isUpdated;
+		} shared;
+	} sdc;
 } RVC_public_t;
 
 /* Global Variables */

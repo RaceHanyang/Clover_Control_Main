@@ -153,8 +153,8 @@ void SDP_PedalBox_init(void)
 		AdcSensor_Config config_adc;
 		//APPS0
 		{
-		float32 throttle_released_voltage = 3.70f; //max 5.0
-		float32 throttle_full_voltage = 1.2f;
+		float32 throttle_released_voltage = 3.48f; //max 5.0
+		float32 throttle_full_voltage = 1.5f;
 
 		config_adc.adcConfig.lpf.config.cutOffFrequency = 10000/(2.0*IFX_PI*0.05);		//FIXME: Adjust time constant
 		config_adc.adcConfig.lpf.config.gain = 1;
@@ -175,8 +175,8 @@ void SDP_PedalBox_init(void)
 		}
 		//APPS1
 		{
-		float32 throttle_released_voltage = 2.4f; //max 3.3
-		float32 throttle_full_voltage = 0.7f;
+		float32 throttle_released_voltage = 2.22f; //max 3.3
+		float32 throttle_full_voltage = 0.93f;
 
 		config_adc.adcConfig.channelIn = &HLD_Vadc_P23_4_G0CH0_AD11;
 		//config_adc.tfConfig.a = 42.5;
