@@ -447,3 +447,11 @@ sint8 CascadiaInverter_getErrorStatus() {
 	if(Inverter_R_Status.FaultCodes.ReceivedData[0] || Inverter_R_Status.FaultCodes.ReceivedData[1]) cnt++;
 	return cnt;
 }
+
+sint16 CascadiaInverter_getHotspotTemperature_RL() {
+	return Inverter_L_Status.Temperature3.S.PM100_HotSpotTemperature;
+}
+
+sint16 CascadiaInverter_getHotspotTemperature_RR() {
+	return Inverter_R_Status.Temperature3.S.PM100_HotSpotTemperature;
+}

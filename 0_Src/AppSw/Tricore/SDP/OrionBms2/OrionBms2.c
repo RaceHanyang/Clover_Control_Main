@@ -124,3 +124,7 @@ IFX_STATIC void OrionBms2_receiveMessage(void)
 		}
 	}
 }
+
+uint8 OrionBms2_getHighTemp(void) {
+	return OrionBms2.msg3.highTemp;
+}
