@@ -386,6 +386,18 @@ typedef struct
 
 }PM100_RWParameter_t;
 
+typedef struct
+{
+	uint32 TransmitData[2];
+	struct {
+		//WS commanded torque feedback torque
+		sint16 PM100_TorqueCommand;
+		sint16 PM100_TorqueFeedback;
+		sint16 PM100_MotorSpeed;
+		uint16 reserved;
+	}S;
+}PM100_log_t;
+
 IFX_EXTERN PM100_Status_t Inverter_L_Status;
 IFX_EXTERN PM100_Status_t Inverter_R_Status;
 
@@ -394,6 +406,9 @@ IFX_EXTERN PM100_Control_t Inverter_R_Control;
 
 IFX_EXTERN PM100_RWParameter_t Inverter_L_RWParameter;
 IFX_EXTERN PM100_RWParameter_t Inverter_R_RWParameter;
+
+IFX_EXTERN PM100_log_t Inverter_L_log;
+IFX_EXTERN PM100_log_t Inverter_R_log;
 
 IFX_EXTERN void CascadiaInverter_can_init(void);
 IFX_EXTERN void CascadiaInverter_can_Run(void);

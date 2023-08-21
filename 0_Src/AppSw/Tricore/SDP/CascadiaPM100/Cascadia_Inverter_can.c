@@ -13,6 +13,9 @@
 
 #include "Build_Global_Parameter.h"
 
+#define Inverter_L_log_ID (0x1761090) //invlog0
+#define Inverter_R_log_ID (0x1761091) //invlog1
+
 PM100_ID_set Inverter_L_ID;
 PM100_ID_set Inverter_R_ID;
 
@@ -31,7 +34,11 @@ PM100_Control_t Inverter_R_Control;
 PM100_RWParameter_t Inverter_L_RWParameter;
 PM100_RWParameter_t Inverter_R_RWParameter;
 
+CanCommunication_Message Tx_Inverter_L_log;
+CanCommunication_Message Tx_Inverter_R_log;
 
+PM100_log_t Inverter_L_log;
+PM100_log_t Inverter_R_log;
 
 void CascadiaInverter_SET_ID(PM100_ID_set* IN, int node);
 void CascadiaInverter_can_init(void);
@@ -454,4 +461,40 @@ sint16 CascadiaInverter_getHotspotTemperature_RL() {
 
 sint16 CascadiaInverter_getHotspotTemperature_RR() {
 	return Inverter_R_Status.Temperature3.S.PM100_HotSpotTemperature;
+}
+
+void CascadiaInverter_initLoggingMessage() {
+	{
+			CanCommunication_Message_Config config;
+			config.messageId = Inverter_L_log_ID;
+			config.frameType = IfxMultican_Frame_transmit;
+			config.dataLen = IfxMultican_DataLengthCode_8;
+			config.node = &CanCommunication_canNode0;
+			CanCommunication_initMessage(&Tx_Inverter_L_log, &config);
+	}
+	{
+			CanCommunication_Message_Config config;
+			config.messageId = Inverter_R_log_ID;
+			config.frameType = IfxMultican_Frame_transmit;
+			config.dataLen = IfxMultican_DataLengthCode_8;
+			config.node = &CanCommunication_canNode0;
+			CanCommunication_initMessage(&Tx_Inverter_R_log, &config);
+	}
+}
+
+
+void CascadiaInverter_runLogging() {
+	Inverter_L_log.S.PM100_MotorSpeed = Inverter_L_Status.HighSpeedMessage.S.PM100_MotorSpeed;
+	Inverter_L_log.S.PM100_TorqueCommand = Inverter_L_Status.HighSpeedMessage.S.PM100_TorqueCommand;
+	Inverter_L_log.S.PM100_TorqueFeedback = Inverter_L_Status.HighSpeedMessage.S.PM100_TorqueFeedback;
+
+	Inverter_R_log.S.PM100_MotorSpeed = Inverter_R_Status.HighSpeedMessage.S.PM100_MotorSpeed;
+	Inverter_R_log.S.PM100_TorqueCommand = Inverter_R_Status.HighSpeedMessage.S.PM100_TorqueCommand;
+	Inverter_R_log.S.PM100_TorqueFeedback = Inverter_R_Status.HighSpeedMessage.S.PM100_TorqueFeedback;
+
+	CanCommunication_setMessageData(Inverter_L_log.TransmitData[0], Inverter_L_log.TransmitData[1], &Tx_Inverter_L_log);
+	CanCommunication_setMessageData(Inverter_R_log.TransmitData[0], Inverter_R_log.TransmitData[1], &Tx_Inverter_R_log);
+
+	CanCommunication_transmitMessage(&Tx_Inverter_L_log);
+	CanCommunication_transmitMessage(&Tx_Inverter_R_log);
 }

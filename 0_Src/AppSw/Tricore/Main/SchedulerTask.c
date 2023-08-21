@@ -194,6 +194,7 @@ void Task_init (void)
 #endif
 #ifdef __SDP_CLOVER__
 		CascadiaInverter_can_init();
+		CascadiaInverter_initLoggingMessage();
 #endif
 		OrionBms2_init();
 		RVC_init();

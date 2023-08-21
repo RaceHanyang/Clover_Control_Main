@@ -149,6 +149,7 @@ void Task_core2_10ms_slot1(void)
 
 void Task_core2_10ms_slot2(void){
 	SDP_DashBoardCan_run_10ms();
+	CascadiaInverter_runLogging();
 }
 
 void Task_core2_backgroundService(void)
