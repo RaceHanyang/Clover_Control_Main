@@ -19,8 +19,8 @@
 PM100_ID_set Inverter_L_ID;
 PM100_ID_set Inverter_R_ID;
 
-CanCommunication_Message Rx_Inverter_L[8];
-CanCommunication_Message Rx_Inverter_R[8];
+CanCommunication_Message Rx_Inverter_L[9];
+CanCommunication_Message Rx_Inverter_R[9];
 
 CanCommunication_Message Tx_TC275_L[2];
 CanCommunication_Message Tx_TC275_R[2];
@@ -56,7 +56,9 @@ void CascadiaInverter_SET_ID(PM100_ID_set* IN, int node)
 	IN->node = node;
 
 	/*Rx~*/
-	IN->ID_PM100_Temperature  = 0x0A2;
+	IN->ID_PM100_Temperature1 = 0x0A0;
+	IN->ID_PM100_Temperature2 = 0x0A1;
+	IN->ID_PM100_Temperature3  = 0x0A2;
 	IN->ID_PM100_Position  = 0x0A5;
 	IN->ID_PM100_Current  = 0x0A6;
 	IN->ID_PM100_Voltage  = 0x0A7;
@@ -123,78 +125,96 @@ void CascadiaInverter_can_Run(void) //receive loop
 {
 	if(CanCommunication_receiveMessage(&Rx_Inverter_L[0]))
 	{
-		Inverter_L_Status.Temperature3.ReceivedData[0] = Rx_Inverter_L[0].msg.data[0];
-		Inverter_L_Status.Temperature3.ReceivedData[1] = Rx_Inverter_L[0].msg.data[1];
+		Inverter_L_Status.Temperature1.ReceivedData[0] = Rx_Inverter_L[0].msg.data[0];
+		Inverter_L_Status.Temperature1.ReceivedData[1] = Rx_Inverter_L[0].msg.data[1];
 	}
 	if(CanCommunication_receiveMessage(&Rx_Inverter_L[1]))
 	{
-		Inverter_L_Status.Position.ReceivedData[0] = Rx_Inverter_L[1].msg.data[0];
-		Inverter_L_Status.Position.ReceivedData[1] = Rx_Inverter_L[1].msg.data[1];
+		Inverter_L_Status.Temperature2.ReceivedData[0] = Rx_Inverter_L[1].msg.data[0];
+		Inverter_L_Status.Temperature2.ReceivedData[1] = Rx_Inverter_L[1].msg.data[1];
 	}
 	if(CanCommunication_receiveMessage(&Rx_Inverter_L[2]))
 	{
-		Inverter_L_Status.Current.ReceivedData[0] = Rx_Inverter_L[2].msg.data[0];
-		Inverter_L_Status.Current.ReceivedData[1] = Rx_Inverter_L[2].msg.data[1];
+		Inverter_L_Status.Temperature3.ReceivedData[0] = Rx_Inverter_L[2].msg.data[0];
+		Inverter_L_Status.Temperature3.ReceivedData[1] = Rx_Inverter_L[2].msg.data[1];
 	}
 	if(CanCommunication_receiveMessage(&Rx_Inverter_L[3]))
 	{
-		Inverter_L_Status.Voltage.ReceivedData[0] = Rx_Inverter_L[3].msg.data[0];
-		Inverter_L_Status.Voltage.ReceivedData[1] = Rx_Inverter_L[3].msg.data[1];
+		Inverter_L_Status.Position.ReceivedData[0] = Rx_Inverter_L[3].msg.data[0];
+		Inverter_L_Status.Position.ReceivedData[1] = Rx_Inverter_L[3].msg.data[1];
 	}
 	if(CanCommunication_receiveMessage(&Rx_Inverter_L[4]))
 	{
-		Inverter_L_Status.InternalStates.ReceivedData[0] = Rx_Inverter_L[4].msg.data[0];
-		Inverter_L_Status.InternalStates.ReceivedData[1] = Rx_Inverter_L[4].msg.data[1];
+		Inverter_L_Status.Current.ReceivedData[0] = Rx_Inverter_L[4].msg.data[0];
+		Inverter_L_Status.Current.ReceivedData[1] = Rx_Inverter_L[4].msg.data[1];
 	}
 	if(CanCommunication_receiveMessage(&Rx_Inverter_L[5]))
 	{
-		Inverter_L_Status.FaultCodes.ReceivedData[0] = Rx_Inverter_L[5].msg.data[0];
-		Inverter_L_Status.FaultCodes.ReceivedData[1] = Rx_Inverter_L[5].msg.data[1];
+		Inverter_L_Status.Voltage.ReceivedData[0] = Rx_Inverter_L[5].msg.data[0];
+		Inverter_L_Status.Voltage.ReceivedData[1] = Rx_Inverter_L[5].msg.data[1];
 	}
 	if(CanCommunication_receiveMessage(&Rx_Inverter_L[6]))
 	{
-		Inverter_L_Status.HighSpeedMessage.ReceivedData[0] = Rx_Inverter_L[6].msg.data[0];
-		Inverter_L_Status.HighSpeedMessage.ReceivedData[1] = Rx_Inverter_L[6].msg.data[1];
+		Inverter_L_Status.InternalStates.ReceivedData[0] = Rx_Inverter_L[6].msg.data[0];
+		Inverter_L_Status.InternalStates.ReceivedData[1] = Rx_Inverter_L[6].msg.data[1];
 	}
-
-
+	if(CanCommunication_receiveMessage(&Rx_Inverter_L[7]))
+	{
+		Inverter_L_Status.FaultCodes.ReceivedData[0] = Rx_Inverter_L[7].msg.data[0];
+		Inverter_L_Status.FaultCodes.ReceivedData[1] = Rx_Inverter_L[7].msg.data[1];
+	}
+	if(CanCommunication_receiveMessage(&Rx_Inverter_L[8]))
+	{
+		Inverter_L_Status.HighSpeedMessage.ReceivedData[0] = Rx_Inverter_L[8].msg.data[0];
+		Inverter_L_Status.HighSpeedMessage.ReceivedData[1] = Rx_Inverter_L[8].msg.data[1];
+	}
 
 
 
 	if(CanCommunication_receiveMessage(&Rx_Inverter_R[0]))
 	{
-		Inverter_R_Status.Temperature3.ReceivedData[0] = Rx_Inverter_R[0].msg.data[0];
-		Inverter_R_Status.Temperature3.ReceivedData[1] = Rx_Inverter_R[0].msg.data[1];
+		Inverter_R_Status.Temperature1.ReceivedData[0] = Rx_Inverter_R[0].msg.data[0];
+		Inverter_R_Status.Temperature1.ReceivedData[1] = Rx_Inverter_R[0].msg.data[1];
 	}
 	if(CanCommunication_receiveMessage(&Rx_Inverter_R[1]))
 	{
-		Inverter_R_Status.Position.ReceivedData[0] = Rx_Inverter_R[1].msg.data[0];
-		Inverter_R_Status.Position.ReceivedData[1] = Rx_Inverter_R[1].msg.data[1];
+		Inverter_R_Status.Temperature2.ReceivedData[0] = Rx_Inverter_R[1].msg.data[0];
+		Inverter_R_Status.Temperature2.ReceivedData[1] = Rx_Inverter_R[1].msg.data[1];
 	}
 	if(CanCommunication_receiveMessage(&Rx_Inverter_R[2]))
 	{
-		Inverter_R_Status.Current.ReceivedData[0] = Rx_Inverter_R[2].msg.data[0];
-		Inverter_R_Status.Current.ReceivedData[1] = Rx_Inverter_R[2].msg.data[1];
+		Inverter_R_Status.Temperature3.ReceivedData[0] = Rx_Inverter_R[2].msg.data[0];
+		Inverter_R_Status.Temperature3.ReceivedData[1] = Rx_Inverter_R[2].msg.data[1];
 	}
 	if(CanCommunication_receiveMessage(&Rx_Inverter_R[3]))
 	{
-		Inverter_R_Status.Voltage.ReceivedData[0] = Rx_Inverter_R[3].msg.data[0];
-		Inverter_R_Status.Voltage.ReceivedData[1] = Rx_Inverter_R[3].msg.data[1];
+		Inverter_R_Status.Position.ReceivedData[0] = Rx_Inverter_R[3].msg.data[0];
+		Inverter_R_Status.Position.ReceivedData[1] = Rx_Inverter_R[3].msg.data[1];
 	}
 	if(CanCommunication_receiveMessage(&Rx_Inverter_R[4]))
 	{
-		Inverter_R_Status.InternalStates.ReceivedData[0] = Rx_Inverter_R[4].msg.data[0];
-		Inverter_R_Status.InternalStates.ReceivedData[1] = Rx_Inverter_R[4].msg.data[1];
+		Inverter_R_Status.Current.ReceivedData[0] = Rx_Inverter_R[4].msg.data[0];
+		Inverter_R_Status.Current.ReceivedData[1] = Rx_Inverter_R[4].msg.data[1];
 	}
 	if(CanCommunication_receiveMessage(&Rx_Inverter_R[5]))
 	{
-		Inverter_R_Status.FaultCodes.ReceivedData[0] = Rx_Inverter_R[5].msg.data[0];
-		Inverter_R_Status.FaultCodes.ReceivedData[1] = Rx_Inverter_R[5].msg.data[1];
+		Inverter_R_Status.Voltage.ReceivedData[0] = Rx_Inverter_R[5].msg.data[0];
+		Inverter_R_Status.Voltage.ReceivedData[1] = Rx_Inverter_R[5].msg.data[1];
 	}
 	if(CanCommunication_receiveMessage(&Rx_Inverter_R[6]))
 	{
-		Inverter_R_Status.HighSpeedMessage.ReceivedData[0] = Rx_Inverter_R[6].msg.data[0];
-		Inverter_R_Status.HighSpeedMessage.ReceivedData[1] = Rx_Inverter_R[6].msg.data[1];
+		Inverter_R_Status.InternalStates.ReceivedData[0] = Rx_Inverter_R[6].msg.data[0];
+		Inverter_R_Status.InternalStates.ReceivedData[1] = Rx_Inverter_R[6].msg.data[1];
+	}
+	if(CanCommunication_receiveMessage(&Rx_Inverter_R[7]))
+	{
+		Inverter_R_Status.FaultCodes.ReceivedData[0] = Rx_Inverter_R[7].msg.data[0];
+		Inverter_R_Status.FaultCodes.ReceivedData[1] = Rx_Inverter_R[7].msg.data[1];
+	}
+	if(CanCommunication_receiveMessage(&Rx_Inverter_R[8]))
+	{
+		Inverter_R_Status.HighSpeedMessage.ReceivedData[0] = Rx_Inverter_R[8].msg.data[0];
+		Inverter_R_Status.HighSpeedMessage.ReceivedData[1] = Rx_Inverter_R[8].msg.data[1];
 	}
 
 	Tx_TC275_L[0].msg.data[0] = Inverter_L_Control.Command.TransmitData[0];
@@ -227,26 +247,32 @@ static void setReceiveMessage(PM100_ID_set* ID, CanCommunication_Message* Rm)
 	config_Message_Receive.node = CanCommunication_canNodes[ID->node];
 	/*~Config in common*/
 
-	config_Message_Receive.messageId = ID->ID_PM100_Temperature;
+	config_Message_Receive.messageId = ID->ID_PM100_Temperature1;
 	CanCommunication_initMessage(&Rm[0], &config_Message_Receive);
 
-	config_Message_Receive.messageId = ID->ID_PM100_Position;
+	config_Message_Receive.messageId = ID->ID_PM100_Temperature2;
 	CanCommunication_initMessage(&Rm[1], &config_Message_Receive);
 
-	config_Message_Receive.messageId = ID->ID_PM100_Current;
+	config_Message_Receive.messageId = ID->ID_PM100_Temperature3;
 	CanCommunication_initMessage(&Rm[2], &config_Message_Receive);
 
-	config_Message_Receive.messageId = ID->ID_PM100_Voltage;
+	config_Message_Receive.messageId = ID->ID_PM100_Position;
 	CanCommunication_initMessage(&Rm[3], &config_Message_Receive);
 
-	config_Message_Receive.messageId = ID->ID_PM100_InternalStates;
+	config_Message_Receive.messageId = ID->ID_PM100_Current;
 	CanCommunication_initMessage(&Rm[4], &config_Message_Receive);
 
-	config_Message_Receive.messageId = ID->ID_PM100_FaultCodes;
+	config_Message_Receive.messageId = ID->ID_PM100_Voltage;
 	CanCommunication_initMessage(&Rm[5], &config_Message_Receive);
 
-	config_Message_Receive.messageId = ID->ID_PM100_HighSpeedMessage;
+	config_Message_Receive.messageId = ID->ID_PM100_InternalStates;
 	CanCommunication_initMessage(&Rm[6], &config_Message_Receive);
+
+	config_Message_Receive.messageId = ID->ID_PM100_FaultCodes;
+	CanCommunication_initMessage(&Rm[7], &config_Message_Receive);
+
+	config_Message_Receive.messageId = ID->ID_PM100_HighSpeedMessage;
+	CanCommunication_initMessage(&Rm[8], &config_Message_Receive);
 /*
 	config_Message_Receive.messageId = ID->ID_PM100_RWParameterResponse;
 	CanCommunication_initMessage(&Rm[7], &config_Message_Receive);
@@ -455,12 +481,12 @@ sint8 CascadiaInverter_getErrorStatus() {
 	return cnt;
 }
 
-sint16 CascadiaInverter_getHotspotTemperature_RL() {
-	return Inverter_L_Status.Temperature3.S.PM100_HotSpotTemperature;
+sint16 CascadiaInverter_getGateDriverBoardTemperature_RL() {
+	return Inverter_L_Status.Temperature1.S.PM100_GateDriverBoardTemperature;
 }
 
-sint16 CascadiaInverter_getHotspotTemperature_RR() {
-	return Inverter_R_Status.Temperature3.S.PM100_HotSpotTemperature;
+sint16 CascadiaInverter_getGateDriverBoardTemperature_RR() {
+	return Inverter_R_Status.Temperature1.S.PM100_GateDriverBoardTemperature;
 }
 
 void CascadiaInverter_initLoggingMessage() {

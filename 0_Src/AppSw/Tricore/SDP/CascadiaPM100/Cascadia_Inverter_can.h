@@ -33,6 +33,29 @@ typedef enum {
 	SUCCESS = 2,
 	FAIL = 3,
 }PM100_ParameterWriteStatus_t;
+
+typedef union
+{
+	uint32 ReceivedData[2];
+	struct{
+		sint16 PM100_ModuleATemperature;
+		sint16 PM100_ModuleBTemperature;
+		sint16 PM100_ModuleCTemperature;
+		sint16 PM100_GateDriverBoardTemperature;
+	}S;
+}PM100_Temperature1_Can_t;
+
+typedef union
+{
+	uint32 ReceivedData[2];
+	struct{
+		sint16 PM100_ControlBoardTemperature;
+		sint16 PM100_RTD1Temperature;
+		sint16 PM100_RTD2Temperature;
+		sint16 PM100_RTD3Temperature;
+	}S;
+}PM100_Temperature2_Can_t;
+
 /*
  * Memory Structure for "Temperature#3" CAN
  * Address: 0x0A2
@@ -331,7 +354,9 @@ typedef struct {
 	int node;
 
 	/*RX~*/
-	uint16 ID_PM100_Temperature;
+	uint16 ID_PM100_Temperature1;
+	uint16 ID_PM100_Temperature2;
+	uint16 ID_PM100_Temperature3;
 	uint16 ID_PM100_Position;
 	uint16 ID_PM100_Current;
 	uint16 ID_PM100_Voltage;
@@ -352,6 +377,8 @@ typedef struct {
 
 typedef struct
 {
+	PM100_Temperature1_Can_t Temperature1;
+	PM100_Temperature2_Can_t Temperature2;
 	PM100_Temperature3_Can_t Temperature3;
 	PM100_MotorPositionInformation_Can_t Position;
 	PM100_CurrentInformation_Can_t Current;

@@ -177,7 +177,7 @@ void SDP_DashBoardCan_resetRTD(void) {
 void SDP_DashBoardCan_updateInfo(void) {
 	DashBoard_canMsg0.S.RTDOn = (RVC_public.readyToDrive.data == RVC_public_ReadyToDrive_status_run);
 	//DashBoard_canMsg0.S.InverterTempWarning = 0;
-	DashBoard_canMsg0.S.InverterTempWarning = (CascadiaInverter_getHotspotTemperature_RL() > 600 || CascadiaInverter_getHotspotTemperature_RR() > 600)?1:0; //Warning when 60 celcius or higher.
+	DashBoard_canMsg0.S.InverterTempWarning = (CascadiaInverter_getGateDriverBoardTemperature_RL() > 700 || CascadiaInverter_getGateDriverBoardTemperature_RR() > 700)?1:0; //Warning when 70 celcius or higher.
 	//DashBoard_canMsg0.S.AccumulatorTempWarning = 0;
 	DashBoard_canMsg0.S.AccumulatorTempWarning = (OrionBms2_getHighTemp() >= 52) ? 1:0; // Warning when 52 celcius or higher.
 	sint8 invError = CascadiaInverter_getErrorStatus();

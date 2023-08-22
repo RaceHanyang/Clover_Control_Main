@@ -136,7 +136,7 @@ void SteeringWheel_run_xms_c2(void) //10ms
 	SteeringWheel.canMsg2.S.apps = (uint16)(SteeringWheel_public.data.apps*100);
 	SteeringWheel.canMsg2.S.bpps = (uint16)(SteeringWheel_public.data.bpps*100);
 	//SteeringWheel.canMsg2.S.lvBatteryVoltage = (uint16)(SteeringWheel_public.data.lvBatteryVoltage*100);
-	SteeringWheel.canMsg2.S.packPower = (uint16)(OrionBms2.msg1.packVoltage * OrionBms2.msg1.packCurrent)/1000; //factor of 10
+	SteeringWheel.canMsg2.S.packPower = (uint16)(OrionBms2.msg1.packVoltage * OrionBms2.msg1.packCurrent)/10; //factor of 10
 	SteeringWheel.canMsg2.S.accumulatorVoltage = OrionBms2.msg1.packVoltage;
 /*
 	SteeringWheel.canMsg3.S.inverterFLTemp = INV_FL_AMK_Actual_Values2.S.AMK_TempInverter;
@@ -149,9 +149,9 @@ void SteeringWheel_run_xms_c2(void) //10ms
 	SteeringWheel.canMsg3.S.motorFRTemp = INV_FR_AMK_Actual_Values2.S.AMK_TempMotor;
 */
 
-	SteeringWheel.canMsg3.S.inverter1Temp = Inverter_L_Status.Temperature3.S.PM100_HotSpotTemperature;
+	SteeringWheel.canMsg3.S.inverter1Temp = Inverter_L_Status.Temperature1.S.PM100_GateDriverBoardTemperature/10;
 	SteeringWheel.canMsg3.S.motor1Temp = Inverter_L_Status.Temperature3.S.PM100_MotorTemperature;
-	SteeringWheel.canMsg3.S.inverter2Temp = Inverter_R_Status.Temperature3.S.PM100_HotSpotTemperature;
+	SteeringWheel.canMsg3.S.inverter2Temp = Inverter_R_Status.Temperature1.S.PM100_GateDriverBoardTemperature/10;
 	SteeringWheel.canMsg3.S.motor2Temp = Inverter_R_Status.Temperature3.S.PM100_MotorTemperature;
 
 	/* Set the messages */
