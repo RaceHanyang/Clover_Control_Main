@@ -81,7 +81,7 @@ TODO:
 
 #define REGEN_ON_INIT	FALSE	//***** Regen is not abailable now!!! ***** //FIXME //TODO: Regen limit
 
-#define LVBAT_LINCAL_A	1.015f
+#define LVBAT_LINCAL_A	1.021f
 #define LVBAT_LINCAL_B	0
 #define LVBAT_LINCAL_D	0
 
@@ -219,13 +219,13 @@ void RVC_run_1ms(void)
 #endif
 	/* TODO: Torque limit: Traction control */
 
-	RVC_powerComputation(); //max torque °áÁ¤
+	RVC_powerComputation(); //max torque ï¿½ï¿½ï¿½ï¿½
 
 	RVC_torqueLimit();
 
 	RVC_torqueSatuation();
 
-	RVC_torqueDistrobution(); // ¹«ÀÇ¹Ì
+	RVC_torqueDistrobution(); // ï¿½ï¿½ï¿½Ç¹ï¿½
 
 	/* TODO: Torque signal check*/
 
@@ -325,7 +325,7 @@ IFX_STATIC void RVC_initAdcSensor(void)
 	adcConfig.linCalConfig.a = LVBAT_LINCAL_A;
 	adcConfig.linCalConfig.b = LVBAT_LINCAL_B;
 	adcConfig.linCalConfig.d = LVBAT_LINCAL_D;
-	adcConfig.tfConfig.a = (20.0f+8.2f)/8.2f;
+	adcConfig.tfConfig.a = (130.0f+20.0f)/20.0f;
 	adcConfig.tfConfig.b = 0.0f;
 
 	AdcSensor_initSensor(&RVC.LvBattery_Voltage, &adcConfig);
