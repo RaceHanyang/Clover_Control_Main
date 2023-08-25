@@ -15,6 +15,9 @@
 #include "SDP.h"
 
 /**************************** Macro **********************************/
+#define _MAX_BP_PER_BRAKE_LINE_ 75.0
+#define _MIN_BP_PER_BRAKE_LINE_ 5.0
+
 
 
 /************************* Data Structures ***************************/
@@ -132,11 +135,24 @@ void SteeringWheel_run_xms_c2(void) //10ms
 	                                       ((SteeringWheel_public.data.isAppsChecked & 0x1) << 0);
 	SteeringWheel.canMsg1.S.status.S.appsError = SteeringWheel_public.data.appsError;
 	SteeringWheel.canMsg1.S.status.S.bppsError = SteeringWheel_public.data.bppsError;
+	SteeringWheel.canMsg1.S.status.S.bpps0_On = SteeringWheel_public.data.bpps0_On;
+	SteeringWheel.canMsg1.S.status.S.bpps1_On = SteeringWheel_public.data.bpps1_On;
 
 	SteeringWheel.canMsg2.S.apps = (uint16)(SteeringWheel_public.data.apps*100);
-	SteeringWheel.canMsg2.S.bpps = (uint16)(SteeringWheel_public.data.bpps*100);
-	//SteeringWheel.canMsg2.S.lvBatteryVoltage = (uint16)(SteeringWheel_public.data.lvBatteryVoltage*100);
-	SteeringWheel.canMsg2.S.packPower = (uint16)(OrionBms2.msg1.packVoltage * OrionBms2.msg1.packCurrent)/10; //factor of 10
+	//SteeringWheel.canMsg2.S.bpps = (uint16)(SteeringWheel_public.data.bpps*100); //this is not the case, since the unit of bpps is
+	double brakePercentage;
+	if(SteeringWheel_public.data.bpps < _MIN_BP_PER_BRAKE_LINE_) {
+		brakePercentage = 0.0;
+	}
+	else if(SteeringWheel_public.data.bpps > _MAX_BP_PER_BRAKE_LINE_) {
+		brakePercentage = 100.0;
+	}
+	else {
+		brakePercentage = (double)SteeringWheel_public.data.bpps / (_MAX_BP_PER_BRAKE_LINE_);
+		brakePercentage *= 100;
+	}
+	SteeringWheel.canMsg2.S.bpps = (uint16)(brakePercentage * 100);
+	SteeringWheel.canMsg2.S.lvBatteryVoltage = (uint16)(SteeringWheel_public.data.lvBatteryVoltage*100);
 	SteeringWheel.canMsg2.S.accumulatorVoltage = OrionBms2.msg1.packVoltage;
 /*
 	SteeringWheel.canMsg3.S.inverterFLTemp = INV_FL_AMK_Actual_Values2.S.AMK_TempInverter;
@@ -153,6 +169,7 @@ void SteeringWheel_run_xms_c2(void) //10ms
 	SteeringWheel.canMsg3.S.motor1Temp = Inverter_L_Status.Temperature3.S.PM100_MotorTemperature;
 	SteeringWheel.canMsg3.S.inverter2Temp = Inverter_R_Status.Temperature1.S.PM100_GateDriverBoardTemperature/10;
 	SteeringWheel.canMsg3.S.motor2Temp = Inverter_R_Status.Temperature3.S.PM100_MotorTemperature;
+	SteeringWheel.canMsg3.S.packPower = SteeringWheel_public.data.packPower;
 
 	/* Set the messages */
 	CanCommunication_setMessageData(SteeringWheel.canMsg1.U[0], SteeringWheel.canMsg1.U[1], &SteeringWheel.msgObj1);

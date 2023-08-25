@@ -862,6 +862,10 @@ IFX_INLINE void VariableUpdateRoutine(void)
 	else
 		SteeringWheel_public.shared.data.bppsError = TRUE;
 	SteeringWheel_public.shared.data.lvBatteryVoltage = RVC.LvBattery_Voltage.value;
+	SteeringWheel_public.shared.data.packPower = (OrionBms2.msg1.packVoltage * OrionBms2.msg1.packCurrent)/10;
+
+	SteeringWheel_public.shared.data.bpps0_On = RVC.brakeOn.bp1;
+	SteeringWheel_public.shared.data.bpps1_On = RVC.brakeOn.bp2;
 }
 volatile uint32 updateErrorCount = 0;
 IFX_INLINE void RVC_updateSharedVariable(void)

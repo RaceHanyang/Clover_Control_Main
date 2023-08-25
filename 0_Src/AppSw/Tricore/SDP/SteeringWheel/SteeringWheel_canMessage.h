@@ -22,10 +22,11 @@ typedef union
 			uint8 U;
 			struct 
 			{
-				uint16 r2d:4;
-				uint16 appsError:1;
-				uint16 bppsError:1;
-				uint16 reserved:2; 
+				uint8 r2d:4;
+				uint8 appsError:1;
+				uint8 bppsError:1;
+				uint8 bpps0_On:1;
+				uint8 bpps1_On:1;
 			}S;
 		}status;
 	}S;
@@ -38,8 +39,8 @@ typedef union
 	{
 		uint16 apps;				//byte0~1;		//RVC
 		uint16 bpps;				//byte2~3;		//RVC
-		//uint16 lvBatteryVoltage;	//byte4~5;		//RVC
-		uint16 packPower;	//byte4~5;		//BMS
+		uint16 lvBatteryVoltage;	//byte4~5;		//RVC
+		//uint16 packPower;	//byte4~5;		//BMS
 		uint16 accumulatorVoltage;	//byte6~7;		//BMS
 	}S;
 	uint32 U[2];
@@ -53,7 +54,8 @@ typedef union
 		uint8 motor1Temp;			//byte1;		//Inverter
 		uint8 inverter2Temp;        //byte2;		//Inverter
 		uint8 motor2Temp;			//byte3;		//Inverter
-		uint32 Reserved;
+		uint16 packPower;
+		uint16 Reserved;
 	}S;
 	uint32 U[2];
 }SteeringWheel_canMsg3_t;

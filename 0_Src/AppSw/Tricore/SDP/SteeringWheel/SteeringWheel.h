@@ -31,7 +31,10 @@ typedef struct
 	boolean appsError;
 	boolean bppsError;
 	float32 lvBatteryVoltage;
-	//float32 packPower;
+	float32 packPower;
+
+	boolean bpps0_On;
+	boolean bpps1_On;
 }SteeringWheel_public_data_t;
 
 typedef struct 
