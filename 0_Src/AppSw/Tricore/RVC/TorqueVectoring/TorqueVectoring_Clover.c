@@ -12,6 +12,8 @@
 // #define TVOPEN_LSD_ON		TRUE
 // #define TVOPEN_LSD_GAIN		1.0f
 
+//#define __DIFFLIMIT_BY_RSW__ //difflimit by steering RSW.
+
 /* Global Variables */
 boolean TVOPEN_LSD_ON = FALSE;  //Set TRUE to trigger TV.
 IFX_EXTERN RVC_t RVC;
@@ -25,8 +27,31 @@ float fasterTorque;
 float diffratio;
 float diffratio_a;
 /* Function Implementation */
+
+void RVC_TorqueVectoring_setDiffLimit(void)
+{
+#ifdef __DIFFLIMIT_BY_RSW__
+	uint8 RSW1;
+	SteeringWheel_readRSW1(&RSW1);
+
+	if(RSW1<0) RSW1 = 0;
+	if(RSW1>9) RSW1 = 9;
+
+	if(RSW1 == 0) {
+		TVOPEN_LSD_ON = FALSE;
+	}
+	else{
+		TVOPEN_LSD_ON = TRUE;
+		RVC.lsd.diffLimit = 0.1+(0.2)*(RSW1-1);
+	}
+#endif
+}
+
 void RVC_TorqueVectoring_run_modeOpen(void)
 {
+
+	RVC_TorqueVectoring_setDiffLimit();
+
 	//diff = left - right
 	//TODO: difflimit, maxdiff, alpha tuning needed
 	if(TVOPEN_LSD_ON == TRUE && RVC.diff.error == FALSE && SDP_WheelSpeed.velocity.chassis > RVC.lsd.speedLow )	//TODO: Diff deadzone

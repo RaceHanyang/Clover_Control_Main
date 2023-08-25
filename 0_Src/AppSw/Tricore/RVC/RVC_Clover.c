@@ -132,7 +132,7 @@ RVC_t RVC =
 	//add MS
 	//difflimit --> 0.16 According to skid pad
 	.lsd.speedLow = 2.5f,
-	.lsd.diffLimit = 0.2f,
+	.lsd.diffLimit = 0.15f,
 	.lsd.kGain = 0.5f/0.2f,
 	.lsd.lGain = 5.0f,
 	.lsd.mGain = 1.0f,		//faster wheel derating
